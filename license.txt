@@ -1,0 +1,29 @@
+<FILENAME/>
+
+Copyright (c) 2021-2030, Paul Scherrer Institute (PSI)
+
+This file is part of the software package 'find_sphers' for the accurate
+detection of spherical objects in a complex background'.
+
+This is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or any
+later version.
+
+The 'find_spheres' software package for the accurate detection of spherical
+particles is distributed in the hope that it will be useful but WITHOUT ANY
+WARRANTY; even without the implied warranty of MERCHANTABILITY or FITNESS 
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+details.
+
+You should have received a copy of the GNU General Public License
+along with the 'find_spheres' package.
+If not, see <http://www.gnu.org/licenses/>.
+
+
+Author(s) of this file:
+  Urs Gasser (urs.gasser@psi.ch)
+
+To cite this software:
+  Opt. Express (2021) ?????
+  doi:????

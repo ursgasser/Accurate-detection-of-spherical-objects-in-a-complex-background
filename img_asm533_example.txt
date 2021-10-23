@@ -1,0 +1,44 @@
+
+a = read_gdf('img_asm533_example.gdf')
+pixel_size = [0.16, 0.16, 0.126]  ; (microns)
+rad = 1.55/2  ; asm533 (microns) expected particle radius
+
+object_size = ceil(2*rad/pixel_size[0:2])
+object_size += 1 - object_size mod 2
+noise_size = [1.,1.,1.]
+exclude_mask = object_size  ; getlocalmax
+compare_mask = 1.25*rad/pixel_size  ; getlocalmax
+fit_mask = 2*rad/pixel_size  ; fitpos
+threshold = 0.5  ; fitpos
+percentile = 0.7  ; getlocalmax
+suppress_bridges = 0.0
+
+kers = -1  ; will contain the convolution kernels
+fkbg = -1  ; will contain the FT of the kbg kernel for bpass3d
+c = find_spheres_y2(a, rad, object_size, pixel_size, exclude_mask, $
+  compare_mask, fit_mask, threshold, noise_size=noise_size, percentile=percentile, $
+  bp_div=bpdiv, kernels=kers, fkbg=fkbg, suppress_bridges=suppress_bridges, $
+  img_smooth=ims, /verbose)
+
+
+; find features not too close to edge
+win = where( c[0,*] gt compare_mask[0] and c[0,*] lt max(c[0,*])-compare_mask[0] $
+  and c[1,*] gt compare_mask[1] and c[1,*] lt max(c[1,*])-compare_mask[1] $
+  and c[2,*] gt compare_mask[2] and c[2,*] lt max(c[2,*])-compare_mask[2], nin)
+
+plot, c[5,win], c[4,win], ps=1  ; R_g^2 versus peak brightness
+wg = where(c[5,*] gt 10.)  ; find good features
+
+w = where(c[2,wg] gt 155 and c[2,wg] lt 165, nw)  ; select positions close to z=160 pix
+help, w
+plot, c[0,wg[w]], c[1,wg[w]], ps=1, /iso  ; show good features close to z=160 pix
+
+; show good features close to z=160 pix in image
+h = a[*,*,160]
+ma = max(a)
+for i = 0,nw-1 do begin &$
+  ind = wg[w[i]] &$
+  h[round(c[0,ind]), round(c[1,ind])] = 1.5*ma &$
+endfor
+erase
+tvscl, h

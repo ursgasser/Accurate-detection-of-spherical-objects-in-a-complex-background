@@ -1,0 +1,189 @@
+; example with an image as shown in Fig. 6.a in 
+; U. Gasser and B. Zhou, OpticsExpress, DOI: https://doi.org/10.1364/OE.434652 (2021).
+
+;=======================================================
+
+; load the image
+img_n = read_gdf('img_4400_n.gdf')
+
+;=======================================================
+
+; find positions with find_spheres_??.pro
+; parameters
+rad = 5.
+pixel_size = [1.,1,1]
+object_size = [11,11,11] ; for bpass3d
+noise_size = [1.,1.,1.]
+exclude_mask = 6.*[1,1,1]  ; getlocalmax
+compare_mask = 6.*[1,1,1]  ; getlocalmax
+fit_mask = 6.*[1,1,1]  ; fitpos
+threshold = 0.5  ; fitpos
+percentile = 0.5  ; getlocalmax
+
+; B&grad method, without suppression of 'bridges'
+suppress_bridges = 0.0
+kers = -1  ; will contain the convolution kernels
+fkbg = -1  ; will contain the FT of the kbg kernel for bpass3d
+t = systime(/seconds)
+c0 = find_spheres_div(img_n, rad, object_size, pixel_size, exclude_mask, $
+  compare_mask, fit_mask, threshold, noise_size=noise_size, percentile=percentile, $
+  bp_div=bpdiv0, kernels=kers, fkbg=fkbg, suppress_bridges=suppress_bridges, $
+  img_smooth=ims)
+print, 'time: ', systime(/seconds)-t
+nrep = 20
+cf0 = fracshift_pos(ims, c0, 0.78*rad, nrep, allpos=acf0)
+print, 'time: ', systime(/seconds)-t
+
+
+; B&grad method, with suppression of 'bridges'
+suppress_bridges = 1.0
+t = systime(/seconds)
+c1 = find_spheres_div(img_n, rad, object_size, pixel_size, exclude_mask, $
+  compare_mask, fit_mask, threshold, noise_size=noise_size, percentile=percentile, $
+  bp_div=bpdiv1, kernels=kers, fkbg=fkbg, suppress_bridges=suppress_bridges, $
+  img_smooth=ims)
+print, 'time: ', systime(/seconds)-t
+nrep = 20
+cf1 = fracshift_pos(ims, c1, 0.78*rad, nrep, allpos=acf1)
+print, 'time: ', systime(/seconds)-t
+
+
+; B&Y method, without suppression of 'bridges'
+suppress_bridges = 0.0
+kers = -1  ; will contain the convolution kernels
+fkbg = -1  ; will contain the FT of the kbg kernel for bpass3d
+t = systime(/seconds)
+c2 = find_spheres_y2(img_n, rad, object_size, pixel_size, exclude_mask, $
+  compare_mask, fit_mask, threshold, noise_size=noise_size, percentile=percentile, $
+  bp_div=bpdiv2, kernels=kers, fkbg=fkbg, suppress_bridges=suppress_bridges, $
+  img_smooth=ims)
+print, 'time: ', systime(/seconds)-t
+nrep = 5
+cf2 = fracshift_pos(ims, c2, 0.78*rad, nrep, allpos=acf0)
+print, 'time: ', systime(/seconds)-t
+
+
+; B&Y method, with suppression of 'bridges'
+suppress_bridges = 1.0
+t = systime(/seconds)
+c3 = find_spheres_y2(img_n, rad, object_size, pixel_size, exclude_mask, $
+  compare_mask, fit_mask, threshold, noise_size=noise_size, percentile=percentile, $
+  bp_div=bpdiv3, kernels=kers, fkbg=fkbg, suppress_bridges=suppress_bridges, $
+  img_smooth=ims)
+print, 'time: ', systime(/seconds)-t
+nrep = 5
+cf3 = fracshift_pos(ims, c3, 0.78*rad, nrep, allpos=acf1)
+print, 'time: ', systime(/seconds)-t
+
+;=======================================================
+
+
+; read actual positions and radii of particles
+h = read_csv('img_4400_pos.csv')
+pos = transpose(float([[h.field1], [h.field2], [h.field3]]))
+h = read_csv('img_4400_radii.csv')
+radius = float(h.field1)
+
+
+; identify good features with the given spheres
+s0 = lonarr(n_elements(pos[0,*]))
+nf0 = n_elements(c0[0,*])  ; number of features
+s1 = lonarr(n_elements(pos[0,*]))
+nf1 = n_elements(c1[0,*])  ; number of features
+s2 = lonarr(n_elements(pos[0,*]))
+nf2 = n_elements(c2[0,*])  ; number of features
+s3 = lonarr(n_elements(pos[0,*]))
+nf3 = n_elements(c3[0,*])  ; number of features
+for ip = 0, n_elements(pos[0,*])-1 do begin &$
+  d = c0[0:2,*] - pos[*,ip]#replicate(1.,nf0) &$
+  r2 = total(d^2,1) &$
+  m = min(r2, im) &$
+  s0[ip] = im &$
+;
+  d = c1[0:2,*] - pos[*,ip]#replicate(1.,nf1) &$
+  r2 = total(d^2,1) &$
+  m = min(r2, im) &$
+  s1[ip] = im &$
+;
+  d = c2[0:2,*] - pos[*,ip]#replicate(1.,nf2) &$
+  r2 = total(d^2,1) &$
+  m = min(r2, im) &$
+  s2[ip] = im &$
+;
+  d = c3[0:2,*] - pos[*,ip]#replicate(1.,nf3) &$
+  r2 = total(d^2,1) &$
+  m = min(r2, im) &$
+  s3[ip] = im &$
+endfor
+
+
+; show histograms of deviations <\Delta r> from the actual positions
+d0 = c0[0:2,s0] - pos
+dr0 = sqrt( total(d0^2, 1) )
+h0 = histogram(dr0, min=0, bin=0.05, locations=x0)
+plot0 = plot(x0, h0, /histogram, yrange=[0,1000], xrange=[0,1.5], xtitle='<$\Delta$r> (pixels)', ytitle='p($\Delta$r)', name='B&$\nabla$')
+print, mean(dr0), median(dr0), max(dr0)
+print, mean(abs(d0[0,*])), median(abs(d0[0,*])), $
+  mean(abs(d0[1,*])), median(abs(d0[1,*])), $
+  mean(abs(d0[2,*])), median(abs(d0[2,*]))
+df0 = cf0[0:2,s0] - pos
+dfr0 = sqrt( total(df0^2, 1) )
+hf0 = histogram(dfr0, min=0, bin=0.05, locations=xf0)
+plot0f = plot(xf0, hf0, /histogram, thick=2, /overplot, name='B&$\nabla$+F')
+print, mean(dfr0), median(dfr0), max(dfr0)
+print, mean(abs(df0[0,*])), median(abs(df0[0,*])), $
+  mean(abs(df0[1,*])), median(abs(df0[1,*])), $
+  mean(abs(df0[2,*])), median(abs(df0[2,*]))
+
+d1 = c1[0:2,s1] - pos
+dr1 = sqrt( total(d1^2, 1) )
+h1 = histogram(dr1, min=0, bin=0.05, locations=x1)
+plot1 = plot(x1, h1, /histogram, color='r', /overplot, name='B&$\nabla$+H')
+print, mean(dr1), median(dr1), max(dr1)
+print, mean(abs(d1[0,*])), median(abs(d1[0,*])), $
+  mean(abs(d1[1,*])), median(abs(d1[1,*])), $
+  mean(abs(d1[2,*])), median(abs(d1[2,*]))
+df1 = cf1[0:2,s1] - pos
+dfr1 = sqrt( total(df1^2, 1) )
+hf1 = histogram(dfr1, min=0, bin=0.05, locations=xf1)
+plot1f = plot(xf1, hf1, /histogram, color='r', thick=2, /overplot, name='B&$\nabla$+H+F')
+print, mean(dfr1), median(dfr1), max(dfr1)
+print, mean(abs(df1[0,*])), median(abs(df1[0,*])), $
+  mean(abs(df1[1,*])), median(abs(df1[1,*])), $
+  mean(abs(df1[2,*])), median(abs(df1[2,*]))
+
+d2 = c2[0:2,s2] - pos
+dr2 = sqrt( total(d2^2, 1) )
+h2 = histogram(dr2, min=0, bin=0.05, locations=x2)
+plot2 = plot(x2, h2, /histogram, color='g', /overplot, name='B&Y')
+print, mean(dr2), median(dr2), max(dr2)
+print, mean(abs(d2[0,*])), median(abs(d2[0,*])), $
+  mean(abs(d2[1,*])), median(abs(d2[1,*])), $
+  mean(abs(d2[2,*])), median(abs(d2[2,*]))
+df2 = cf2[0:2,s2] - pos
+dfr2 = sqrt( total(df2^2, 1) )
+hf2 = histogram(dfr2, min=0, bin=0.05, locations=xf2)
+plot2f = plot(xf2, hf2, /histogram, color='g', thick=2, /overplot, name='B&Y+F')
+print, mean(dfr2), median(dfr2), max(dfr2)
+print, mean(abs(df2[0,*])), median(abs(df2[0,*])), $
+  mean(abs(df2[1,*])), median(abs(df2[1,*])), $
+  mean(abs(df2[2,*])), median(abs(df2[2,*]))
+
+d3 = c3[0:2,s3] - pos
+dr3 = sqrt( total(d3^2, 1) )
+h3 = histogram(dr3, min=0, bin=0.05, locations=x3)
+plot3 = plot(x3, h3, /histogram, color='b', /overplot, name='B&Y+H')
+print, mean(dr3), median(dr3), max(dr3)
+print, mean(abs(d3[0,*])), median(abs(d3[0,*])), $
+  mean(abs(d3[1,*])), median(abs(d3[1,*])), $
+  mean(abs(d3[2,*])), median(abs(d3[2,*]))
+df3 = cf3[0:2,s3] - pos
+dfr3 = sqrt( total(df3^2, 1) )
+hf3 = histogram(dfr3, min=0, bin=0.05, locations=xf3)
+plot3f = plot(xf3, hf3, /histogram, color='b', thick=2, /overplot, name='B&Y+H+F')
+print, mean(dfr3), median(dfr3), max(dfr3)
+print, mean(abs(df3[0,*])), median(abs(df3[0,*])), $
+  mean(abs(df3[1,*])), median(abs(df3[1,*])), $
+  mean(abs(df3[2,*])), median(abs(df3[2,*]))
+
+leg = legend(target=[plot0,plot0f, plot1,plot1f, plot2,plot2f, plot3,plot3f], /auto_text_color)

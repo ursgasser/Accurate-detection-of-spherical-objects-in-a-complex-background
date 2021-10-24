@@ -11,4 +11,5 @@ find_spheres_div.pro: B&gradient method in the paper given above.
 
 find_spheres_y2.pro: B&Y method in the paper given above.
 
-See the IDL code in the files 'img_4769_example.txt' and 'img_4400_example.txt' for particle-detection examples. Calculated images are used in these two examples and the determined positions can be compared with the known positions of the spheres. Both the $B\&\nabla$ and B&Y methods are used with and without fracshift and suppression of bridges to compare methods. 
+See the IDL code in the files 'img_4769_example.txt' and 'img_4400_example.txt' for particle-detection examples. Calculated images are used in these two examples and the determined positions can be compared with the known positions of the spheres. Both the B&$\nabla$ and B&Y methods are used with and without fracshift and suppression of bridges to compare methods. 
+An example of the B&Y method with a measured confocal image is given in file 'img_asm533_example.txt'.

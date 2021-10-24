@@ -1,5 +1,10 @@
+; example with an image as shown in Fig. 2.a in 
+; U. Gasser and B. Zhou, OpticsExpress, DOI: https://doi.org/10.1364/OE.434652 (2021).
 
-a = read_gdf('img_asm533_example.gdf')
+;=======================================================
+
+; load the image
+a = [[[read_gdf('img_asm533_example_1.gdf')]], [[read_gdf('img_asm533_example_2.gdf')]]]
 pixel_size = [0.16, 0.16, 0.126]  ; (microns)
 rad = 1.55/2  ; asm533 (microns) expected particle radius
 

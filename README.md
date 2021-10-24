@@ -6,5 +6,7 @@ This code was published in (see citation.bis) U. Gasser and B. Zhou, OpticsExpre
 We plan to also give a python version.
 
 The particle detection code is given in the files find_spheres_div.pro and find_spheres_y2.pro.
+
 find_spheres_div.pro: B&gradient method in the paper given above.
+
 find_spheres_y2.pro: B&Y method in the paper given above.

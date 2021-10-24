@@ -10,3 +10,5 @@ The particle detection code is given in the files find_spheres_div.pro and find_
 find_spheres_div.pro: B&gradient method in the paper given above.
 
 find_spheres_y2.pro: B&Y method in the paper given above.
+
+See the IDL code in the files 'img_4769_example.txt' and 'img_4400_example.txt' for particle-detection examples. Calculated images are used in these two examples and the determined positions can be compared with the known positions of the spheres. Both the $B\&\nabla$ and B&Y methods are used with and without fracshift and suppression of bridges to compare methods. 

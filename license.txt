@@ -25,5 +25,5 @@ Author(s) of this file:
   Urs Gasser (urs.gasser@psi.ch)
 
 To cite this software:
-  Opt. Express (2021) ?????
+  U. Gasser, B. Zhou, Opt. Express 29 (23), 37048 (2021)
   doi: https://doi.org/10.1364/OE.434652
